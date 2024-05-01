@@ -5,7 +5,7 @@ import KidsSchema from '../../../kids/infrastructure/models/kids.model';
 const customersRouter = express.Router();
 
 /**
- * [GET] all the customers
+ * [GET] customers
  */
 customersRouter.get('/', async (req: Request, res: Response) => {
   try {
@@ -52,7 +52,7 @@ customersRouter.get('/uid/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * [GET] customer by mongo ID
+ * [GET] customer by id
  */
 customersRouter.get('/id/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -89,9 +89,9 @@ customersRouter.get('/id/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * [POST] create a new customer object
+ * [POST] create a customer
  */
-customersRouter.post('/', async (req: Request, res: Response) => {
+customersRouter.post('/post', async (req: Request, res: Response) => {
   try {
     const emailCustomer = await Customers.findOne({
       $and: [{ email: req.body.email }, { cellphone: '' }, { isActive: true }],
@@ -131,7 +131,7 @@ customersRouter.post('/', async (req: Request, res: Response) => {
 /**
  * [PATCH] update customer by id
  */
-customersRouter.patch('/id/:id', async (req: Request, res: Response) => {
+customersRouter.patch('/patch/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
@@ -155,42 +155,27 @@ customersRouter.patch('/id/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * [PATCH] update customer state (is_active) by id
+ * [DELETE] customer by id
  */
-customersRouter.patch(
-  '/update-customer-state/:id',
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const type = req.query['type'];
+customersRouter.delete('/delete/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
 
-    try {
-      if (type !== undefined) {
-        if (type === 'deactivate') {
-          const customer = await Customers.findByIdAndUpdate(id, {
-            $set: {
-              isActive: false,
-            },
-          });
+  try {
+    const customer = await Customers.findByIdAndDelete(id);
 
-          res.json(customer);
-        }
+    const kids = await KidsSchema.find({
+      customer_id: id,
+      avatar: { $gte: ' ' },
+    }).countDocuments();
 
-        if (type === 'activate') {
-          const customer = await Customers.findByIdAndUpdate(id, {
-            $set: {
-              isActive: true,
-            },
-          });
-
-          res.json(customer);
-        }
-      } else {
-        res.json({ error: 'undefined query' });
-      }
-    } catch (error: any) {
-      res.json({ error: error.message });
+    if (customer) {
+      customer.kids_count = kids;
     }
+
+    res.json(customer);
+  } catch (error: any) {
+    res.json({ error: error.message });
   }
-);
+});
 
 export default customersRouter;

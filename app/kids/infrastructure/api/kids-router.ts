@@ -7,6 +7,20 @@ import Utils from '../../../../utils/utils';
 const kidsRouter = express.Router();
 
 /**
+ * [GET] kids
+ */
+kidsRouter.get('/', async (req: Request, res: Response) => {
+  try {
+    const kids = await KidsSchema.find({
+      avatar: { $gte: ' ' },
+    });
+    res.json(kids);
+  } catch (error: any) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
  * [GET] bring all the kids related to a customer
  */
 kidsRouter.get('/:id', async (req: Request, res: Response) => {
@@ -24,7 +38,7 @@ kidsRouter.get('/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * [GET] bring the only one kid by his objectIds
+ * [GET] kid by customer id
  */
 kidsRouter.get('/info/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -38,197 +52,8 @@ kidsRouter.get('/info/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * [POST] create a new kid
+ * [GET] books info related to the kid by id
  */
-kidsRouter.post('/', async (req: Request, res: Response) => {
-  const type = req.query['type'];
-
-  try {
-    if (type === 'mobile') {
-      const kids = await KidsSchema.create(req.body);
-
-      const kidId = kids.id;
-
-      const findKid = await KidsSchema.findById(kidId);
-
-      res.json(findKid);
-    } else {
-      const kids = await KidsSchema.create(req.body);
-      res.json(kids);
-    }
-  } catch (error: any) {
-    res.json({ error: error.message });
-  }
-});
-
-kidsRouter.post('/context', async (req: Request, res: Response) => {
-  const valid_context_type: Array<string> = [
-    'family',
-    'personal',
-    'socioemotional',
-    'aspects',
-    'personality',
-  ];
-
-  try {
-    let payload = req.body;
-    let _id: string = payload.hasOwnProperty('kid_id') ? payload.kid_id : null;
-    let context_type: string = payload.hasOwnProperty('context_type')
-      ? payload.context_type
-      : null;
-    let context: Array<string> = payload.hasOwnProperty('context')
-      ? payload.context
-      : null;
-    let kid;
-
-    if (_id === null || _id === '') {
-      return res.status(400).send({ message: 'Kid Id is invalid' });
-    }
-
-    if (
-      context_type === null ||
-      context_type === '' ||
-      !valid_context_type.includes(context_type)
-    ) {
-      return res.status(400).send({ message: 'Context type is invalid' });
-    }
-
-    if (context === null || context.length === 0) {
-      return res.status(400).send({ message: 'Context is invalid' });
-    }
-
-    if (context_type === valid_context_type[0]) {
-      kid = await KidsSchema.findByIdAndUpdate(
-        { _id },
-        { family_context: context, modification_date: Date.now() }
-      );
-    } else if (context_type === valid_context_type[1]) {
-      kid = await KidsSchema.findByIdAndUpdate(
-        { _id },
-        { personal_context: context, modification_date: Date.now() }
-      );
-    } else if (context_type === valid_context_type[2]) {
-      kid = await KidsSchema.findByIdAndUpdate(
-        { _id },
-        { socioemotional_context: context, modification_date: Date.now() }
-      );
-    } else if (context_type == valid_context_type[3]) {
-      kid = await KidsSchema.findByIdAndUpdate(
-        { _id },
-        { aspects: context, modification_date: Date.now() }
-      );
-    } else if (context_type == valid_context_type[4]) {
-      kid = await KidsSchema.findByIdAndUpdate(
-        { _id },
-        { personality: context, modification_date: Date.now() }
-      );
-    }
-
-    res.json({ _id: kid?._id, customer_id: kid?.customer_id });
-  } catch (error: any) {
-    res.json({ error: error.message });
-  }
-});
-
-kidsRouter.delete('/:id', async (req: Request, res: Response) => {
-  const { kidId } = req.params;
-
-  try {
-    const kid = await KidsSchema.findByIdAndDelete(kidId);
-    res.json(kid);
-  } catch (error: any) {
-    res.json({ error: error.message });
-  }
-});
-
-kidsRouter.post('/style', async (req: Request, res: Response) => {
-  try {
-    let payload = req.body;
-    let _id: string = payload.hasOwnProperty('kid_id') ? payload.kid_id : null;
-    let style_image: string = payload.hasOwnProperty('style_image')
-      ? payload.style_image
-      : null;
-    let kid;
-
-    if (_id === null || _id === '') {
-      return res.status(400).send({ message: 'Kid Id is invalid' });
-    }
-
-    if (style_image === null || style_image === '') {
-      return res.status(400).send({ message: 'Style image is invalid' });
-    }
-
-    kid = await KidsSchema.findByIdAndUpdate(
-      { _id },
-      { avatar: style_image, modification_date: Date.now() }
-    );
-
-    res.json({ _id: kid?._id, customer_id: kid?.customer_id });
-  } catch (error: any) {
-    res.json({ error: error.message });
-  }
-});
-
-/**
- * [PATCH] update only a kid by his objectId
- */
-kidsRouter.patch('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  try {
-    const kid = await KidsSchema.findByIdAndUpdate(id, req.body, { new: true });
-    res.json(kid);
-  } catch (error: any) {
-    res.json({ error: error.message });
-  }
-});
-
-kidsRouter.patch(
-  '/update-kids-status/:id',
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const type = req.query['type'];
-
-    try {
-      if (type !== undefined) {
-        if (type === 'deactivate') {
-          const kids = await KidsSchema.updateMany(
-            {
-              customer_id: id,
-            },
-            {
-              $set: {
-                is_active: false,
-              },
-            }
-          );
-
-          res.json(kids);
-        }
-
-        if (type === 'activate') {
-          const kids = await KidsSchema.updateMany(
-            {
-              customer_id: id,
-            },
-            {
-              $set: {
-                is_active: true,
-              },
-            }
-          );
-
-          res.json(kids);
-        }
-      } else {
-        res.json({ error: 'undefined query' });
-      }
-    } catch (error: any) {
-      res.json({ error: error.message });
-    }
-  }
-);
-
 kidsRouter.get('/books-info/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -398,6 +223,46 @@ kidsRouter.get('/books-info/:id', async (req: Request, res: Response) => {
       leadership_included,
       assertiveness_included,
     });
+  } catch (error: any) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
+ * [POST] create kid
+ */
+kidsRouter.post('/post', async (req: Request, res: Response) => {
+  try {
+    const kids = await KidsSchema.create(req.body);
+    res.json(kids);
+  } catch (error: any) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
+ * [DELETE] delete kid by id
+ */
+kidsRouter.delete('/delete/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const kid = await KidsSchema.findByIdAndDelete(id);
+    res.json(kid);
+  } catch (error: any) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
+ * [PATCH] update kid by id
+ */
+kidsRouter.patch('/patch/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const kid = await KidsSchema.findByIdAndUpdate(id, req.body, { new: true });
+    res.json(kid);
   } catch (error: any) {
     res.json({ error: error.message });
   }

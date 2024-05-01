@@ -16,13 +16,13 @@ storyRouter.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * [GET] storie by id
+ * [GET] stories by id
  */
 storyRouter.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const story = await StorySchema.findById(id);
+    const story = await StorySchema.find({ customer_id: id });
     res.json(story);
   } catch (error: any) {
     res.json({ error: error.message });

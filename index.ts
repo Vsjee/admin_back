@@ -12,6 +12,7 @@ const server = new Server();
 
 var whitelist = [
   'http://localhost:4200',
+  'http://localhost:5173',
   'http://localhost',
   'https://webapp-stg-y6mjjgdxkq-ue.a.run.app',
   'https://stg-app.soybumii.com',

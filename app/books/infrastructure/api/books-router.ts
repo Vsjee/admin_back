@@ -16,13 +16,13 @@ booksRouter.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * [GET] book by id
+ * [GET] books by id
  */
 booksRouter.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const books = await BooksSchema.findById(id);
+    const books = await BooksSchema.find({ customer_id: id });
     res.json(books);
   } catch (error: any) {
     res.json({ error: error.message });

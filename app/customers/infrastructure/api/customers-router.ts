@@ -41,7 +41,7 @@ customersRouter.get('/uid/:id', async (req: Request, res: Response) => {
     const kids = await KidsSchema.find({
       customer_id: customer.id,
       avatar: { $gte: ' ' },
-    }).count();
+    }).countDocuments();
 
     customer.kids_count = kids;
 
@@ -65,7 +65,7 @@ customersRouter.get('/id/:id', async (req: Request, res: Response) => {
         const kids = await KidsSchema.find({
           customer_id: customer.id,
           avatar: { $gte: ' ' },
-        }).count();
+        }).countDocuments();
 
         customer.kids_count = kids;
 
@@ -115,7 +115,7 @@ customersRouter.post('/', async (req: Request, res: Response) => {
       const kids = await KidsSchema.find({
         customer_id: customer.id,
         avatar: { $gte: ' ' },
-      }).count();
+      }).countDocuments();
 
       if (customer) {
         customer.kids_count = kids;
@@ -142,7 +142,7 @@ customersRouter.patch('/id/:id', async (req: Request, res: Response) => {
     const kids = await KidsSchema.find({
       customer_id: id,
       avatar: { $gte: ' ' },
-    }).count();
+    }).countDocuments();
 
     if (customer) {
       customer.kids_count = kids;

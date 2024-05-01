@@ -233,8 +233,8 @@ kidsRouter.get('/books-info/:id', async (req: Request, res: Response) => {
  */
 kidsRouter.post('/post', async (req: Request, res: Response) => {
   try {
-    const kids = await KidsSchema.create(req.body);
-    res.json(kids);
+    const kid = await KidsSchema.create(req.body);
+    res.json(kid);
   } catch (error: any) {
     res.json({ error: error.message });
   }

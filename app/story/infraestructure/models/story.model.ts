@@ -27,6 +27,21 @@ const CharacterSchema = new Schema(
   { _id: false }
 );
 
+const IStoryTokens = new Schema(
+  {
+    prompt_tokens: Number,
+    completion_tokens: Number,
+    total_tokens: Number,
+    source: String,
+  },
+  { _id: false }
+);
+
+const IImagesPromptTokens = new Schema(
+  { prompt_tokens: Number, completion_tokens: Number, total_tokens: Number },
+  { _id: false }
+);
+
 const StorySchema = new Schema(
   {
     customer_id: String,
@@ -34,6 +49,8 @@ const StorySchema = new Schema(
     characters: [CharacterSchema],
     main_plot: String,
     creation_date: Number,
+    story_tokens: IStoryTokens,
+    image_prompt_tokens: IImagesPromptTokens,
   },
   { _id: true }
 );

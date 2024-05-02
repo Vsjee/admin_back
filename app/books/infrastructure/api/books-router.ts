@@ -1,6 +1,8 @@
 import express, { Response, Request } from 'express';
 import BooksSchema from '../models/books.model';
 
+import StorySchema from '../../../story/infraestructure/models/story.model';
+
 const booksRouter = express.Router();
 
 /**
@@ -53,7 +55,12 @@ booksRouter.delete('/delete/:id', async (req: Request, res: Response) => {
 
   try {
     const books = await BooksSchema.findByIdAndDelete(id);
-    res.json(books);
+    await StorySchema.findByIdAndDelete(books?.story_id);
+
+    res.json({
+      message: 'Book deleted successfully',
+      status: 200,
+    });
   } catch (error: any) {
     res.json({ error: error.message });
   }

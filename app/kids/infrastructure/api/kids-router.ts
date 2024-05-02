@@ -268,4 +268,23 @@ kidsRouter.patch('/patch/:id', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * [PATCH] update kid status
+ */
+kidsRouter.patch(
+  '/patch/activation/:id',
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      const kid = await KidsSchema.findByIdAndUpdate(id, req.body, {
+        new: true,
+      });
+      res.json(kid);
+    } catch (error: any) {
+      res.json({ error: error.message });
+    }
+  }
+);
+
 export default kidsRouter;

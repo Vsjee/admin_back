@@ -6,18 +6,12 @@ import BooksSchema from '../../../books/infrastructure/models/books.model';
 import StorySchema from '../../../story/infraestructure/models/story.model';
 import { date_parser_util } from '../../../../utils/date_parser_util';
 
-export const globalReportPDF = async (
-  dataCallback: any,
-  endCallback: any,
-  customerId: string
-) => {
+export const globalReportPDF = async (dataCallback: any, endCallback: any) => {
   const customers = await CustomerSchema.find().countDocuments();
 
   const lastCustomers = await CustomerSchema.find()
     .sort({ creationDate: -1 })
     .limit(10);
-
-  const customer = await CustomerSchema.findById(customerId);
 
   const kids = await KidsSchema.find({
     avatar: { $gte: ' ' },
@@ -28,8 +22,6 @@ export const globalReportPDF = async (
   })
     .sort({ creationDate: -1 })
     .limit(10);
-
-  const books = await BooksSchema.find();
 
   const lastBooks = await BooksSchema.find()
     .sort({ creationDate: -1 })
@@ -58,6 +50,7 @@ export const globalReportPDF = async (
   doc.moveDown();
   doc.moveDown();
 
+  // Tokens
   const storyTokens = stories.reduce(
     (acc, storie) => acc + (storie.story_tokens?.total_tokens ?? 0),
     0
@@ -70,7 +63,6 @@ export const globalReportPDF = async (
 
   const usedTokensTable = {
     title: 'Tokens usados',
-    subtitle: 'Lista story tokens y image tokens usados a dia de hoy',
     headers: ['Story Tokens', 'Image Prompt Story Tokens'],
     rows: [[storyTokens.toString(), imageTokens.toString()]],
   };
@@ -81,6 +73,113 @@ export const globalReportPDF = async (
   doc.moveDown();
   doc.moveDown();
   doc.moveDown();
+
+  // kids
+
+  doc.text(`Total niños a dia de hoy: ${kids.length}`);
+
+  doc.moveDown();
+
+  let averageAge = 0;
+  kids.forEach((kid) => {
+    kid.years ? (averageAge += kid.years) : (averageAge += 0);
+  });
+
+  doc.text(`Edad promedio: ${(averageAge / kids.length).toFixed(0)}`);
+
+  doc.moveDown();
+  doc.moveDown();
+  doc.moveDown();
+
+  const calculateGendersPercentage = () => {
+    let maleCount = 0;
+    let femaleCount = 0;
+
+    kids.forEach((kid) =>
+      kid.gender === 'male' ? maleCount++ : femaleCount++
+    );
+
+    return [
+      [
+        'Masculino',
+        `${((maleCount / kids.length) * 100).toFixed(2)}%`,
+        maleCount.toString(),
+      ],
+      [
+        'Femenino',
+        `${((femaleCount / kids.length) * 100).toFixed(2)}%`,
+        femaleCount.toString(),
+      ],
+    ];
+  };
+
+  const kidsGenderPercentage = {
+    title: 'Porcentaje de niños creados por genero',
+    headers: ['Genero', 'Porcentaje', 'Total niños'],
+    rows: calculateGendersPercentage(),
+  };
+  doc.table(kidsGenderPercentage);
+
+  doc.moveDown();
+  doc.moveDown();
+  doc.moveDown();
+
+  // books
+
+  doc.text(`Total libros a dia de hoy: ${stories.length}`);
+
+  doc.moveDown();
+  doc.moveDown();
+  doc.moveDown();
+
+  let storiesLangCountES = 0;
+  let storiesLangCountEN = 0;
+  let storiesLangCountFR = 0;
+  let storiesLangCountPT = 0;
+
+  stories.forEach((story) => {
+    if (story.lang === 'es' || story.lang === 'ES') {
+      storiesLangCountES++;
+    } else if (story.lang === 'en' || story.lang === 'EN') {
+      storiesLangCountEN++;
+    } else if (story.lang === 'fr' || story.lang === 'FR') {
+      storiesLangCountFR++;
+    } else if (story.lang === 'pt' || story.lang === 'PT') {
+      storiesLangCountPT++;
+    }
+  });
+
+  const storiesLangPercentage = {
+    title: 'Total libros por idioma',
+    headers: ['Idioma', 'Total', 'Porcentaje'],
+    rows: [
+      [
+        'Español',
+        storiesLangCountES.toString(),
+        `${((storiesLangCountES / stories.length) * 100).toFixed(2)}%`,
+      ],
+      [
+        'Ingles',
+        storiesLangCountEN.toString(),
+        `${((storiesLangCountEN / stories.length) * 100).toFixed(2)}%`,
+      ],
+      [
+        'Frances',
+        storiesLangCountFR.toString(),
+        `${((storiesLangCountFR / stories.length) * 100).toFixed(2)}%`,
+      ],
+      [
+        'Portugues',
+        storiesLangCountPT.toString(),
+        `${((storiesLangCountPT / stories.length) * 100).toFixed(2)}%`,
+      ],
+    ],
+  };
+  doc.table(storiesLangPercentage);
+
+  doc.addPage();
+
+  // recent customers, kids and books
 
   const recentCustomers = {
     title: 'Cuentas recientes',

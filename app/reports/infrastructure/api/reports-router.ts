@@ -6,9 +6,7 @@ const reportsRouter = express.Router();
 /**
  * [GET] global report
  */
-reportsRouter.get('/global/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-
+reportsRouter.get('/global', (req: Request, res: Response) => {
   try {
     const stream = res.writeHead(200, {
       'Content-Type': 'application/pdf',
@@ -17,8 +15,7 @@ reportsRouter.get('/global/:id', (req: Request, res: Response) => {
 
     globalReportPDF(
       (data: any) => stream.write(data),
-      () => stream.end(),
-      id
+      () => stream.end()
     );
 
     res.send('Creating global report...');

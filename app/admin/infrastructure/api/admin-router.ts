@@ -14,9 +14,24 @@ adminRouter.get('/', async (req: Request, res: Response) => {
     const user = await AdminsSchema.find({ user: userName });
 
     if (user.length === 0 || user[0].password! !== password)
-      return res.json({ authorized: false });
+      return res.json({ authorized: false, userId: user[0]._id });
 
-    return res.json({ authorized: true });
+    return res.json({ authorized: true, userId: user[0]._id });
+  } catch (error: any) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
+ * [GET] user admin by id
+ */
+adminRouter.get('/id/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const user = await AdminsSchema.findById(id);
+
+    return res.json(user);
   } catch (error: any) {
     res.json({ error: error.message });
   }

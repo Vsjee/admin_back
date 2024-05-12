@@ -59,15 +59,17 @@ adminRouter.post('/create', (req: Request, res: Response) => {
 /**
  * [PATCH] update user admin
  */
-adminRouter.post('/create', (req: Request, res: Response) => {
+adminRouter.patch('/update', async (req: Request, res: Response) => {
+  const userReq = req.body;
+
   try {
-    const user = AdminsSchema.create({
-      user: 'bumii-admin',
-      password: 'admin-pass-123',
-      is_active: true,
-      is_admin: true,
-      modification_date: Date.now(),
-    });
+    const user = await AdminsSchema.findByIdAndUpdate(
+      userReq._id,
+      {
+        $set: { ...userReq, modification_date: Date.now() },
+      },
+      { new: true }
+    );
 
     res.json(user);
   } catch (error: any) {

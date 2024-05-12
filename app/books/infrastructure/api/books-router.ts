@@ -48,6 +48,36 @@ booksRouter.patch('/patch/:id', async (req: Request, res: Response) => {
 });
 
 /**
+ * [PATCH] update book status by id
+ */
+booksRouter.patch('/patch-status/:id', async (req: Request, res: Response) => {
+  const { bookReq } = req.body;
+  const bookReqDirect = req.body;
+
+  const { id } = req.params;
+
+  try {
+    const book = await BooksSchema.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          ...(bookReq || bookReqDirect),
+          is_active: bookReq ? !bookReq.is_active : !bookReqDirect.is_active,
+          modification_date: Date.now(),
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    res.json(book);
+  } catch (error: any) {
+    res.json({ error: error.message });
+  }
+});
+
+/**
  * [DELETE] book by id
  */
 booksRouter.delete('/delete/:id', async (req: Request, res: Response) => {
